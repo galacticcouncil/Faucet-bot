@@ -56,7 +56,7 @@ const drip = async (address: string): Promise<DripStatus> => {
     address,
     new BN('10000000000000000'),
   )
-  await transfer.signAndSend(fundingAccount).catch((error) => {
+  await transfer.signAndSend(fundingAccount, { nonce: -1 }).catch((error) => {
     console.log('FUNDING FAILED', error)
     status.message = 'funding failed, please contact support'
     return status
