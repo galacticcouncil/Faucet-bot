@@ -2,9 +2,12 @@ import { ApiPromise, WsProvider, Keyring } from '@polkadot/api'
 import BN from 'bn.js'
 import { encodeAddress, cryptoWaitReady } from '@polkadot/util-crypto'
 import { KeyringPair } from '@polkadot/keyring/types'
+import {Index} from "@polkadot/types/interfaces";
+import {system} from "@polkadot/types/interfaces/definitions";
 
 let api: ApiPromise | null = null
 let fundingAccount: KeyringPair | null = null
+let nextNonce: () => number
 
 interface DripStatus {
   success: boolean
@@ -26,7 +29,8 @@ const init = async (rpc: string, funding_key: string) => {
 
   fundingAccount = keyring.addFromUri(funding_key)
 
-  console.log('drip account:', fundingAccount.address)
+  let currentNonce = await api.rpc.system.accountNextIndex(fundingAccount.address).then(n => n.toNumber())
+  nextNonce = () => currentNonce++;
 }
 
 const drip = async (address: string): Promise<DripStatus> => {
@@ -56,7 +60,7 @@ const drip = async (address: string): Promise<DripStatus> => {
     address,
     new BN('10000000000000000'),
   )
-  await transfer.signAndSend(fundingAccount, { nonce: -1 }).catch((error) => {
+  await transfer.signAndSend(fundingAccount, { nonce: nextNonce() }).catch((error) => {
     console.log('FUNDING FAILED', error)
     status.message = 'funding failed, please contact support'
     return status
