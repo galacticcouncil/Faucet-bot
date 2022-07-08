@@ -52,7 +52,7 @@ const init = async (
     .then((n) => n.toNumber())
   nextTestnetNonce = () => currentTestnetNonce++
 
-  let currentRococoNonce = await testnet_api.rpc.system
+  let currentRococoNonce = await rococo_api.rpc.system
     .accountNextIndex(fundingAccount.address)
     .then((n) => n.toNumber())
   nextRococoNonce = () => currentRococoNonce++
