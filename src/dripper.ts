@@ -2,35 +2,60 @@ import { ApiPromise, WsProvider, Keyring } from '@polkadot/api'
 import BN from 'bn.js'
 import { encodeAddress, cryptoWaitReady } from '@polkadot/util-crypto'
 import { KeyringPair } from '@polkadot/keyring/types'
-import {Index} from "@polkadot/types/interfaces";
-import {system} from "@polkadot/types/interfaces/definitions";
+import { Index } from '@polkadot/types/interfaces'
+import { system } from '@polkadot/types/interfaces/definitions'
 
-let api: ApiPromise | null = null
+let testnet_api: ApiPromise | null = null
+let rococo_api: ApiPromise | null = null
 let fundingAccount: KeyringPair | null = null
-let nextNonce: () => number
+let nextTestnetNonce: () => number
+let nextRococoNonce: () => number
 
 interface DripStatus {
   success: boolean
   message: string
 }
 
-const init = async (rpc: string, funding_key: string) => {
+const init = async (
+  testnet_rpc: string,
+  rococo_rpc: string,
+  funding_key: string,
+) => {
   await cryptoWaitReady()
-  const provider = new WsProvider(rpc)
+  const testnet_provider = new WsProvider(testnet_rpc)
+  const rococo_provider = new WsProvider(rococo_rpc)
   const keyring = new Keyring({ type: 'sr25519' })
-  api = await ApiPromise.create({ provider })
+  testnet_api = await ApiPromise.create({ provider: testnet_provider })
+  rococo_api = await ApiPromise.create({ provider: rococo_provider })
 
-  const [chain, nodeVersion] = await Promise.all([
-    api.rpc.system.chain(),
-    api.rpc.system.version(),
+  const [testnet_chain, testnet_nodeVersion] = await Promise.all([
+    testnet_api.rpc.system.chain(),
+    testnet_api.rpc.system.version(),
   ])
 
-  console.log(`connected to ${rpc} (${chain} ${nodeVersion})`)
+  const [rococo_chain, rococo_nodeVersion] = await Promise.all([
+    rococo_api.rpc.system.chain(),
+    rococo_api.rpc.system.version(),
+  ])
+
+  console.log(
+    `connected to testnet ${testnet_rpc} (${testnet_chain} ${testnet_nodeVersion})`,
+  )
+  console.log(
+    `connected to rococo ${rococo_rpc} (${rococo_chain} ${rococo_nodeVersion})`,
+  )
 
   fundingAccount = keyring.addFromUri(funding_key)
 
-  let currentNonce = await api.rpc.system.accountNextIndex(fundingAccount.address).then(n => n.toNumber())
-  nextNonce = () => currentNonce++;
+  let currentTestnetNonce = await testnet_api.rpc.system
+    .accountNextIndex(fundingAccount.address)
+    .then((n) => n.toNumber())
+  nextTestnetNonce = () => currentTestnetNonce++
+
+  let currentRococoNonce = await testnet_api.rpc.system
+    .accountNextIndex(fundingAccount.address)
+    .then((n) => n.toNumber())
+  nextRococoNonce = () => currentRococoNonce++
 }
 
 const drip = async (address: string): Promise<DripStatus> => {
@@ -38,11 +63,11 @@ const drip = async (address: string): Promise<DripStatus> => {
     success: false,
     message: '',
   }
-  if (!api || !fundingAccount) {
+  if (!testnet_api || !rococo_api || !fundingAccount) {
     status.message = 'Bot API not initialized'
     return status
   }
-  if (!api.isConnected) {
+  if (!rococo_api.isConnected || !testnet_api.isConnected) {
     status.message = 'Bot API connection error'
     return status
   }
@@ -56,15 +81,31 @@ const drip = async (address: string): Promise<DripStatus> => {
 
   console.log('dripping to', address)
 
-  const transfer = api.tx.balances.transfer(
+  const testnet_transfer = testnet_api.tx.balances.transfer(
     address,
     new BN('10000000000000000'),
   )
-  await transfer.signAndSend(fundingAccount, { nonce: nextNonce() }).catch((error) => {
-    console.log('FUNDING FAILED', error)
-    status.message = 'funding failed, please contact support'
-    return status
-  })
+
+  const rococo_transfer = rococo_api.tx.balances.transfer(
+    address,
+    new BN('10000000000000000'),
+  )
+
+  await testnet_transfer
+    .signAndSend(fundingAccount, { nonce: nextTestnetNonce() })
+    .catch((error) => {
+      console.log('FUNDING FAILED', error)
+      status.message = 'funding failed, please contact support'
+      return status
+    })
+
+  await rococo_transfer
+    .signAndSend(fundingAccount, { nonce: nextRococoNonce() })
+    .catch((error) => {
+      console.log('FUNDING FAILED', error)
+      status.message = 'funding failed, please contact support'
+      return status
+    })
 
   status.success = true
 

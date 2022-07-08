@@ -7,7 +7,8 @@ import dripper from './dripper'
 dotenv.config()
 
 const token = process.env.TOKEN
-const RPC = process.env.RPC_ENDPOINT
+const TESTNET_RPC = process.env.TESTNET_RPC_ENDPOINT
+const ROCOCO_RPC = process.env.ROCOCO_RPC_ENDPOINT
 const key = process.env.FUNDING_KEY
 const talkedRecently = new Set()
 
@@ -61,11 +62,17 @@ const client = new Client({
 })
 
 client.on('ready', async () => {
-  if (!client.user || !client.application || !RPC || !key) {
+  if (
+    !client.user ||
+    !client.application ||
+    !TESTNET_RPC ||
+    !ROCOCO_RPC ||
+    !key
+  ) {
     return
   }
 
-  await dripper.init(RPC, key).catch((error) => {
+  await dripper.init(TESTNET_RPC, ROCOCO_RPC, key).catch((error) => {
     console.log('API Initialization error', error)
   })
 
