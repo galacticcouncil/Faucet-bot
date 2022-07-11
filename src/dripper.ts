@@ -81,17 +81,33 @@ const drip = async (address: string): Promise<DripStatus> => {
 
   console.log('dripping to', address)
 
-  const testnet_transfer = testnet_api.tx.balances.transfer(
+  // Transfer BSX
+  const testnet_transfer_native = testnet_api.tx.balances.transfer(
     address,
-    new BN('10000000000000000'),
+    new BN('100000000000000000'),
   )
 
-  const rococo_transfer = rococo_api.tx.balances.transfer(
+  // Transfer KSM(FAKE-WND)
+  const testnet_transfer_relay = testnet_api.tx.tokens.transfer(
     address,
-    new BN('10000000000000000'),
+    new BN('1'),
+    new BN('1000000000000'),
   )
 
-  await testnet_transfer
+  // Transfer BSX
+  const rococo_transfer_native = rococo_api.tx.balances.transfer(
+    address,
+    new BN('100000000000000000'),
+  )
+
+  // Transfer KSM(FAKE-ROC)
+  const rococo_transfer_relay = rococo_api.tx.tokens.transfer(
+    address,
+    new BN('5'),
+    new BN('1000000000000'),
+  )
+
+  await testnet_transfer_native
     .signAndSend(fundingAccount, { nonce: nextTestnetNonce() })
     .catch((error) => {
       console.log('FUNDING FAILED', error)
@@ -99,8 +115,24 @@ const drip = async (address: string): Promise<DripStatus> => {
       return status
     })
 
-  await rococo_transfer
+  await testnet_transfer_relay
+    .signAndSend(fundingAccount, { nonce: nextTestnetNonce() })
+    .catch((error) => {
+      console.log('FUNDING FAILED', error)
+      status.message = 'funding failed, please contact support'
+      return status
+    })
+
+  await rococo_transfer_native
     .signAndSend(fundingAccount, { nonce: nextRococoNonce() })
+    .catch((error) => {
+      console.log('FUNDING FAILED', error)
+      status.message = 'funding failed, please contact support'
+      return status
+    })
+
+  await rococo_transfer_relay
+    .signAndSend(fundingAccount, { nonce: nextTestnetNonce() })
     .catch((error) => {
       console.log('FUNDING FAILED', error)
       status.message = 'funding failed, please contact support'
