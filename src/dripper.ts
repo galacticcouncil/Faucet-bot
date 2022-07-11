@@ -132,7 +132,7 @@ const drip = async (address: string): Promise<DripStatus> => {
     })
 
   await rococo_transfer_relay
-    .signAndSend(fundingAccount, { nonce: nextTestnetNonce() })
+    .signAndSend(fundingAccount, { nonce: nextRococoNonce() })
     .catch((error) => {
       console.log('FUNDING FAILED', error)
       status.message = 'funding failed, please contact support'
