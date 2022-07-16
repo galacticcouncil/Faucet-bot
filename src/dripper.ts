@@ -33,7 +33,7 @@ const init = async (
   })
 }
 
-const initNetwork = async (rpc: string) => {
+const initNetwork = async (rpc: string): Promise<[ApiPromise, () => number]> => {
   const provider = new WsProvider(rpc)
   const api = await ApiPromise.create({ provider })
   const [chain, version] = await Promise.all([
