@@ -23,17 +23,17 @@ const init = async (
   const keyring = new Keyring({ type: 'sr25519' })
   fundingAccount = keyring.addFromUri(funding_key)
 
-  initNetwork(testnet_rpc).then(([api, nextNonce]) => {
+  initNetwork(testnet_rpc, fundingAccount).then(([api, nextNonce]) => {
     testnet_api = api;
     nextTestnetNonce = nextNonce;
   })
-  initNetwork(rococo_rpc).then(([api, nextNonce]) => {
+  initNetwork(rococo_rpc, fundingAccount).then(([api, nextNonce]) => {
     rococo_api = api;
     nextRococoNonce = nextNonce;
   })
 }
 
-const initNetwork = async (rpc: string): Promise<[ApiPromise, () => number]> => {
+const initNetwork = async (rpc: string, fundingAccount: KeyringPair): Promise<[ApiPromise, () => number]> => {
   const provider = new WsProvider(rpc)
   const api = await ApiPromise.create({ provider })
   const [chain, version] = await Promise.all([
@@ -45,7 +45,6 @@ const initNetwork = async (rpc: string): Promise<[ApiPromise, () => number]> => 
       `connected to ${rpc} (${chain} ${version})`,
   )
 
-  // @ts-ignore
   let currentNonce = await api.rpc.system
       .accountNextIndex(fundingAccount.address)
       .then(n => n.toNumber())
