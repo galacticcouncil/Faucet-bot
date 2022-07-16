@@ -58,12 +58,8 @@ const drip = async (address: string): Promise<DripStatus> => {
     success: false,
     message: '',
   }
-  if (!testnet_api || !rococo_api || !fundingAccount) {
+  if (!fundingAccount) {
     status.message = 'Bot API not initialized'
-    return status
-  }
-  if (!rococo_api.isConnected || !testnet_api.isConnected) {
-    status.message = 'Bot API connection error'
     return status
   }
 
@@ -76,7 +72,7 @@ const drip = async (address: string): Promise<DripStatus> => {
 
   console.log('dripping to', address)
 
-  if (testnet_api) {
+  if (testnet_api && testnet_api.isConnected) {
     // Transfer BSX
     const testnet_transfer_native = testnet_api.tx.balances.transfer(
         address,
@@ -107,7 +103,7 @@ const drip = async (address: string): Promise<DripStatus> => {
         })
   }
 
-  if (rococo_api) {
+  if (rococo_api && rococo_api.isConnected) {
     // Transfer BSX
     const rococo_transfer_native = rococo_api.tx.balances.transfer(
         address,
