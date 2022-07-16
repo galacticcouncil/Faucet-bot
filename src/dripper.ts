@@ -45,6 +45,7 @@ const initNetwork = async (rpc: string): Promise<[ApiPromise, () => number]> => 
       `connected to ${rpc} (${chain} ${version})`,
   )
 
+  // @ts-ignore
   let currentNonce = await api.rpc.system
       .accountNextIndex(fundingAccount.address)
       .then(n => n.toNumber())
