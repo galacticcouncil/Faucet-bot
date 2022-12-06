@@ -3,7 +3,6 @@ name: docker
 on:
   push:
     branches:
-      - main
 
 jobs:
   docker:
@@ -20,7 +19,9 @@ jobs:
           images: |
             galacticcouncil/faucet
           tags: |
-            type=raw,value=latest
+            type=ref,event=branch
+            type=ref,event=tag
+            type=raw,value=latest,enable={{is_default_branch}}
       -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v2
