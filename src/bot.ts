@@ -7,12 +7,11 @@ import dripper from './dripper'
 dotenv.config()
 
 const token = process.env.TOKEN
-const TESTNET_RPC = process.env.TESTNET_RPC_ENDPOINT
-const ROCOCO_RPC = process.env.ROCOCO_RPC_ENDPOINT
+const rpc = process.env.RPC
 const key = process.env.FUNDING_KEY
 const talkedRecently = new Set()
 
-console.log('Bot is starting...')
+console.log('faucet is starting...')
 
 const dripCommand: Command = {
   name: 'drip',
@@ -65,18 +64,17 @@ client.on('ready', async () => {
   if (
     !client.user ||
     !client.application ||
-    !TESTNET_RPC ||
-    !ROCOCO_RPC ||
+    !rpc ||
     !key
   ) {
     return
   }
 
-  await dripper.init(TESTNET_RPC, ROCOCO_RPC, key).catch((error) => {
+  await dripper.init(rpc, key).catch((error) => {
     console.log('API Initialization error', error)
   })
 
-  await await client.application.commands.set([dripCommand])
+  await client.application.commands.set([dripCommand])
 
   console.log(`${client.user.username} is online`)
 })

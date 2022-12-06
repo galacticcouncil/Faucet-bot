@@ -4,7 +4,6 @@ WORKDIR /app
 COPY . .
 RUN npm install
 
-ENV TESTNET_RPC_ENDPOINT wss://rpc01.hydration.dev
-ENV ROCOCO_RPC_ENDPOINT wss://rococo-basilisk-rpc.hydration.dev
+ENV RPC wss://hydradx-rococo-rpc.play.hydration.cloud
 
 CMD ["npm", "start"]

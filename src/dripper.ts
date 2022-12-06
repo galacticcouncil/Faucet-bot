@@ -3,11 +3,9 @@ import BN from 'bn.js'
 import {encodeAddress, cryptoWaitReady} from '@polkadot/util-crypto'
 import {KeyringPair} from '@polkadot/keyring/types'
 
-let testnet_api: ApiPromise | null = null
-let rococo_api: ApiPromise | null = null
+let api: ApiPromise | null = null
 let fundingAccount: KeyringPair | null = null
-let nextTestnetNonce: () => number
-let nextRococoNonce: () => number
+let nextNonce: () => number
 
 interface DripStatus {
     success: boolean
@@ -15,8 +13,7 @@ interface DripStatus {
 }
 
 const init = async (
-    testnet_rpc: string,
-    rococo_rpc: string,
+    rpc: string,
     funding_key: string,
 ) => {
     await cryptoWaitReady()
@@ -25,14 +22,7 @@ const init = async (
 
     console.log('funding account:', fundingAccount.address)
 
-    initNetwork(testnet_rpc, fundingAccount).then(([api, nextNonce]) => {
-        testnet_api = api;
-        nextTestnetNonce = nextNonce;
-    })
-    initNetwork(rococo_rpc, fundingAccount).then(([api, nextNonce]) => {
-        rococo_api = api;
-        nextRococoNonce = nextNonce;
-    })
+    initNetwork(rpc, fundingAccount).then(result => [api, nextNonce] = result);
 }
 
 const initNetwork = async (rpc: string, fundingAccount: KeyringPair): Promise<[ApiPromise, () => number]> => {
@@ -74,68 +64,23 @@ const drip = async (address: string): Promise<DripStatus> => {
 
     console.log('dripping to', address)
 
-    if (testnet_api && testnet_api.isConnected) {
-        console.log('on testnet')
-        // Transfer BSX
-        const testnet_transfer_native = testnet_api.tx.balances.transfer(
-            address,
-            new BN('100000000000000000'),
-        )
+    if (api && api.isConnected) {
+        const {balances, tokens, utility} = api.tx;
 
-        // Transfer KSM(FAKE-WND)
-        const testnet_transfer_relay = testnet_api.tx.tokens.transfer(
-            address,
-            new BN('1'),
-            new BN('1000000000000'),
-        )
+        // TODO: make configurable
+        const tx = utility.batchAll([
+            balances.transfer(address, new BN(18765).mul(new BN(10).pow(new BN(12)))), // HDX
+            tokens.transfer(address, '2', new BN(1000).mul(new BN(10).pow(new BN(18)))), // DAI
+            tokens.transfer(address, '5', new BN(175).mul(new BN(10).pow(new BN(10)))), // DOT
+        ]);
 
-        await testnet_transfer_native
-            .signAndSend(fundingAccount, {nonce: nextTestnetNonce()})
+        await tx
+            .signAndSend(fundingAccount, {nonce: nextNonce()})
             .catch((error) => {
                 console.log('FUNDING FAILED', error)
                 status.message = 'funding failed, please contact support'
                 return status
-            })
-
-        await testnet_transfer_relay
-            .signAndSend(fundingAccount, {nonce: nextTestnetNonce()})
-            .catch((error) => {
-                console.log('FUNDING FAILED', error)
-                status.message = 'funding failed, please contact support'
-                return status
-            })
-    }
-
-    if (rococo_api && rococo_api.isConnected) {
-        console.log('on rococo')
-        // Transfer BSX
-        const rococo_transfer_native = rococo_api.tx.balances.transfer(
-            address,
-            new BN('100000000000000000'),
-        )
-
-        // Transfer KSM(FAKE-ROC)
-        const rococo_transfer_relay = rococo_api.tx.tokens.transfer(
-            address,
-            new BN('5'),
-            new BN('1000000000000'),
-        )
-
-        await rococo_transfer_native
-            .signAndSend(fundingAccount, {nonce: nextRococoNonce()})
-            .catch((error) => {
-                console.log('FUNDING FAILED', error)
-                status.message = 'funding failed, please contact support'
-                return status
-            })
-
-        await rococo_transfer_relay
-            .signAndSend(fundingAccount, {nonce: nextRococoNonce()})
-            .catch((error) => {
-                console.log('FUNDING FAILED', error)
-                status.message = 'funding failed, please contact support'
-                return status
-            })
+            });
     }
 
     status.success = true
