@@ -35,7 +35,7 @@ const dripCommand: Command = {
     console.log(interaction.user.id, 'requesting drip')
 
     if (talkedRecently.has(interaction.user.id)) {
-      content = 'Please wait one day before asking for more tokens'
+      content = 'Please wait for some time before asking for more tokens'
     } else if (address && typeof address === 'string') {
       const status = await dripper.drip(address)
       if (!status.success) {
@@ -44,7 +44,7 @@ const dripCommand: Command = {
         talkedRecently.add(interaction.user.id)
         setTimeout(() => {
           talkedRecently.delete(interaction.user.id)
-        }, 24 * 60 * 60 * 1000)
+        }, 5 * 24 * 60 * 60 * 1000)
       }
     }
 

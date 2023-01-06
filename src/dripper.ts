@@ -68,11 +68,7 @@ const drip = async (address: string): Promise<DripStatus> => {
         const {balances, tokens, utility} = api.tx;
 
         // TODO: make configurable
-        const tx = utility.batchAll([
-            balances.transfer(address, new BN(18765).mul(new BN(10).pow(new BN(12)))), // HDX
-            tokens.transfer(address, '2', new BN(1000).mul(new BN(10).pow(new BN(18)))), // DAI
-            tokens.transfer(address, '5', new BN(175).mul(new BN(10).pow(new BN(10)))), // DOT
-        ]);
+        const tx = balances.transfer(address, new BN(166111111111), // ACA
 
         await tx
             .signAndSend(fundingAccount, {nonce: nextNonce()})
