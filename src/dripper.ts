@@ -68,7 +68,7 @@ const drip = async (address: string): Promise<DripStatus> => {
         const {balances, tokens, utility} = api.tx;
 
         // TODO: make configurable
-        const tx = balances.transfer(address, new BN(166111111111), // ACA
+        const tx = balances.transfer(address, new BN(166111111111)); // ACA
 
         await tx
             .signAndSend(fundingAccount, {nonce: nextNonce()})
