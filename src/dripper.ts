@@ -69,8 +69,8 @@ const drip = async (address: string): Promise<DripStatus> => {
 
         // TODO: make configurable
         const tx = utility.batchAll([
-            balances.transfer(address, new BN(166111111111)), // ACA
-            currencies.transfer(address, {Erc20: '0x54a37a01cd75b616d63e0ab665bffdb0143c52ae'}, new BN(11000000000000000)), // DAI
+            balances.transfer(address, new BN('166111111111')), // ACA
+            currencies.transfer(address, {Erc20: '0x54a37a01cd75b616d63e0ab665bffdb0143c52ae'}, new BN('11000000000000000')), // DAI
         ]);
 
         await tx
