@@ -55,31 +55,40 @@ const drip = async (address: string): Promise<DripStatus> => {
         return status
     }
 
+    let hydraDxAddress;
+    const addressBytes = Buffer.from(address.slice(2), "hex");
+
     try {
-        const encodedAddress = encodeAddress(address)
+        if(addressBytes.length === 20) {
+            hydraDxAddress = encodeAddress(
+                new Uint8Array(
+                    Buffer.concat([Buffer.from("ETH\0"), addressBytes, Buffer.alloc(8)]),
+                )
+            )
+        } else {
+            hydraDxAddress = encodeAddress(address)
+        }
+
+        console.log('dripping to', address, ' => ', hydraDxAddress);
+
+        if (api && api.isConnected) {
+            const {currencies} = api.tx;
+
+            // TODO: make configurable
+            const tx = currencies.transfer(hydraDxAddress, "20", new BN('1000000000000000000')); // ETH
+
+            await tx
+                .signAndSend(fundingAccount, {nonce: nextNonce()})
+                .catch((error) => {
+                    console.log('FUNDING FAILED', error)
+                    status.message = 'funding failed, please contact support'
+                    return status
+                });
+        }
+
     } catch (e) {
         status.message = 'invalid address'
         return status
-    }
-
-    console.log('dripping to', address)
-
-    if (api && api.isConnected) {
-        const {balances, utility, currencies} = api.tx;
-
-        // TODO: make configurable
-        const tx = utility.batchAll([
-            balances.transfer(address, new BN('166111111111')), // ACA
-            currencies.transfer(address, {Erc20: '0x54a37a01cd75b616d63e0ab665bffdb0143c52ae'}, new BN('11000000000000000')), // DAI
-        ]);
-
-        await tx
-            .signAndSend(fundingAccount, {nonce: nextNonce()})
-            .catch((error) => {
-                console.log('FUNDING FAILED', error)
-                status.message = 'funding failed, please contact support'
-                return status
-            });
     }
 
     status.success = true

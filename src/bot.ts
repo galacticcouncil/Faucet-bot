@@ -29,7 +29,7 @@ const dripCommand: Command = {
     const address = interaction.options.get('address')?.value || null
     let content =
       address && typeof address === 'string'
-        ? 'Successfully requested funding for ' + address
+        ? 'Successfully requested funding.'
         : 'No address provided'
 
     console.log(interaction.user.id, 'requesting drip')
