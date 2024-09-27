@@ -19,9 +19,9 @@
   },
   "homepage": "https://github.com/galacticcouncil/Faucet-bot#readme",
   "dependencies": {
-    "@polkadot/api": "^7.15.1",
-    "@polkadot/util": "^8.7.1",
-    "@polkadot/util-crypto": "^8.7.1",
+    "@polkadot/api": "^13.2.1",
+    "@polkadot/util": "^13.1.1",
+    "@polkadot/util-crypto": "^13.1.1",
     "bn.js": "^5.2.0",
     "discord.js": "^13.6.0",
     "dotenv": "^16.0.0"
