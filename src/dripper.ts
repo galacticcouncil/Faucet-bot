@@ -72,10 +72,16 @@ const drip = async (address: string): Promise<DripStatus> => {
         console.log('dripping to', address, ' => ', hydraDxAddress);
 
         if (api && api.isConnected) {
-            const {currencies} = api.tx;
+            const {currencies, utility} = api.tx;
 
             // TODO: make configurable
-            const tx = currencies.transfer(hydraDxAddress, "20", new BN('1000000000000000000')); // ETH
+            const tx = utility.batchAll([
+                currencies.transfer(hydraDxAddress, "20", new BN('2222000000000000000')), // ETH
+                currencies.transfer(hydraDxAddress, "5", new BN('22220000000000')), // DOT
+                currencies.transfer(hydraDxAddress, "10", new BN('2222000000')), // USDT
+                currencies.transfer(hydraDxAddress, "21", new BN('2222000000')), // USDC
+                currencies.transfer(hydraDxAddress, "3", new BN('22220000')), // WBTC
+            ]);
 
             await tx
                 .signAndSend(fundingAccount, {nonce: nextNonce()})
