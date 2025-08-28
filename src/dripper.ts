@@ -76,11 +76,10 @@ const drip = async (address: string): Promise<DripStatus> => {
 
             // TODO: make configurable
             const tx = utility.batchAll([
-                currencies.transfer(hydraDxAddress, "20", new BN('2222000000000000000')), // ETH
-                currencies.transfer(hydraDxAddress, "5", new BN('22220000000000')), // DOT
-                currencies.transfer(hydraDxAddress, "10", new BN('2222000000')), // USDT
-                currencies.transfer(hydraDxAddress, "21", new BN('2222000000')), // USDC
-                currencies.transfer(hydraDxAddress, "3", new BN('22220000')), // WBTC
+                currencies.transfer(hydraDxAddress, "10", new BN('10000000000')), // USDT
+                currencies.transfer(hydraDxAddress, "22", new BN('10000000000')), // USDC
+                currencies.transfer(hydraDxAddress, "1000745", new BN('10000000000000000000000')), // sUSDS
+                currencies.transfer(hydraDxAddress, "1000625", new BN('10000000000000000000000')), // sUSDe
             ]);
 
             await tx
