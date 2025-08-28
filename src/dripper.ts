@@ -76,6 +76,7 @@ const drip = async (address: string): Promise<DripStatus> => {
 
             // TODO: make configurable
             const tx = utility.batchAll([
+                currencies.transfer(hydraDxAddress, "5", new BN('50000000000000')), // DOT
                 currencies.transfer(hydraDxAddress, "10", new BN('10000000000')), // USDT
                 currencies.transfer(hydraDxAddress, "22", new BN('10000000000')), // USDC
                 currencies.transfer(hydraDxAddress, "1000745", new BN('10000000000000000000000')), // sUSDS
